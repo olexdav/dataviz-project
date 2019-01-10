@@ -22,7 +22,7 @@ library(ggthemes)
 library(knitr)
 
 ## set working directory
-knitr::opts_knit$set(root.dir = '/cloud/project')
+knitr::opts_knit$set(root.dir = '/cloud/project/dataviz-project')
 ```
 
 # Part 1: Exploratory Data Analysis
@@ -43,6 +43,13 @@ pets <- read.csv("data/raw_data/seattle_pet_licenses.csv", stringsAsFactors = FA
 ```{r pet-explore, warning=FALSE} 
 ## Include code here to explore the data 
 ## and answer the questions in the exercise
+head(pets)
+glimpse(pets)
+# amount of unique pet names
+length(unique(pets$animal_s_name))
+# summarize pets by species
+df <- pets %>% group_by(species)
+df %>% summarize(N = n())
 ```
 
 ## Visualize the Data
@@ -50,15 +57,15 @@ pets <- read.csv("data/raw_data/seattle_pet_licenses.csv", stringsAsFactors = FA
 ```{r pet-barchart, warning=FALSE} 
 ## visual breakdown of how many of each species 
 ## are included in the dataset
-ggplot(DATASET) +
-  geom_bar(aes(x=VARIABLE))
+ggplot(data = pets) +
+  geom_bar(aes(x=species))
 ```
 
 ```{r pet-cat-table, warning=FALSE} 
 ## Table: Most frequent Cat Name 
-DATASET %>% 
-  filter(species == "SPECIES", VARIABLE != "") %>%
-  group_by(VARIABLE) %>% 
+pets %>% 
+  filter(species == "Cat", animal_s_name != "") %>%
+  group_by(animal_s_name) %>% 
   summarise(n = n()) %>% 
   arrange(-n) %>%
   top_n(n = 10) %>%
@@ -67,7 +74,13 @@ DATASET %>%
 
 ```{r pet-dog-table, warning=FALSE} 
 ## Table: Most frequent Dog Name
-## ADD CODE!
+pets %>% 
+  filter(species == "Dog", animal_s_name != "") %>%
+  group_by(animal_s_name) %>% 
+  summarise(n = n()) %>% 
+  arrange(-n) %>%
+  top_n(n = 10) %>%
+  knitr::kable(., caption = "Top 10 Dog Names in Seattle")
 ```
 
 ```{r pet-linechart, warning=FALSE} 
@@ -78,20 +91,32 @@ pets$ym <- as.yearmon(pets$date, "%y%m")
 ## how the number of licenses recorded has changed over time
 pets %>%
   ## group by yearmonth (`ym`)
-  function_name(VARIABLE) %>% 
+  group_by(ym) %>% 
   ## count number within each group
-  function_name(n=n()) %>%
-  ggplot(., aes(VARIABLE, n)) + 
+  summarize(n=n()) %>%
+  ggplot(., aes(ym, n)) + 
   ## geom name for line chart
-  geom_GEOM() +
+  geom_line() +
   scale_x_yearmon() + 
   xlab("") + 
   ylab("Number of licenses")
 ```
 
 ```{r pet-plot, warning=FALSE} 
-### Explore the data -- create your own plot!
-
+### Explore the data
+# 5 most common cat and dog breeds
+cats <- pets %>% filter(species == "Cat")
+dogs <- pets %>% filter(species == "Dog")
+cat_breeds <- cats %>%
+  group_by(primary_breed) %>%
+  summarize(n = n()) %>%
+  arrange(-n)
+dog_breeds <- dogs %>%
+  group_by(primary_breed) %>%
+  summarize(n = n()) %>%
+  arrange(-n)
+cat_breeds[1:5,]
+dog_breeds[1:5,]
 ```
 
 # Part 2: Explanatory Data Analysis
